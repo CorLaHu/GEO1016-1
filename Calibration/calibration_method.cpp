@@ -109,18 +109,18 @@ bool Calibration::calibration(
 
     // Define an m-by-n double valued matrix.
     // Here I use the above array to initialize it. You can also use A(i, j) to initialize/modify/access its elements.
-    const int m = 6, n = 5;
-    Matrix A(m, n, array.data());    // 'array.data()' returns a pointer to the array.
+//    const int m = 6, n = 5;
+//    Matrix A(m, n, array.data());    // 'array.data()' returns a pointer to the array.
 //    std::cout << "M: \n" << A << std::endl;
 
     /// define a 3 by 4 matrix (and all elements initialized to 0.0)
-    Matrix M(3, 4, 0.0);
+//    Matrix M(3, 4, 0.0);
 
-    /// set first row by a vector
-    M.set_row(0, Vector4D(1.1, 2.2, 3.3, 4.4));
-
-    /// set second column by a vector
-    M.set_column(1, Vector3D(5.5, 5.5, 5.5));
+//    /// set first row by a vector
+//    M.set_row(0, Vector4D(1.1, 2.2, 3.3, 4.4));
+//
+//    /// set second column by a vector
+//    M.set_column(1, Vector3D(5.5, 5.5, 5.5));
 
     /// define a 3 by 3 matrix (and all elements initialized to 0.0)
     Matrix33 B;
@@ -131,9 +131,9 @@ bool Calibration::calibration(
                0, 0, 1);
 
     /// define and initialize a 3 by 4 matrix
-    Matrix34 P(1.1, 2.2, 3.3, 0,
-               0, 2.2, 3.3, 1,
-               0, 0, 1, 1);
+//    Matrix34 P(1.1, 2.2, 3.3, 0,
+//               0, 2.2, 3.3, 1,
+//               0, 0, 1, 1);
 
     /// define a 15 by 9 matrix (and all elements initialized to 0.0)
     Matrix W(15, 9, 0.0);
@@ -156,14 +156,14 @@ bool Calibration::calibration(
     Matrix33 I = Matrix::identity(3, 3, 1.0);
 
     /// matrix-vector product
-    Vector3D v = M * Vector4D(1, 2, 3, 4); // M is 3 by 4
+//    Vector3D v = M * Vector4D(1, 2, 3, 4); // M is 3 by 4
 
-    Matrix U(m, m, 0.0);   // initialized with 0s
-    Matrix S(m, n, 0.0);   // initialized with 0s
-    Matrix V(n, n, 0.0);   // initialized with 0s
-
-    // Compute the SVD decomposition of A
-    svd_decompose(A, U, S, V);
+//    Matrix U(m, m, 0.0);   // initialized with 0s
+//    Matrix S(m, n, 0.0);   // initialized with 0s
+//    Matrix V(n, n, 0.0);   // initialized with 0s
+//
+//    // Compute the SVD decomposition of A
+//    svd_decompose(A, U, S, V);
 
     // Now let's check if the SVD result is correct
 
@@ -209,12 +209,37 @@ bool Calibration::calibration(
         std::cout << "Invalid input!" << std::endl;
         return false;
     }
+
     // TODO: construct the P matrix (so P * m = 0).
-    int num_points = points_3d.size();
+    Matrix P(points_3d.size() * 2, 12, 0.0);
+    for (int i = 0; i < points_3d.size(); ++i){
+        P.set_row(i*2, {points_3d[i].x(), points_3d[i].y(), points_3d[i].z(), 1.0,
+                        0.0, 0.0, 0.0, 0.0,
+                        -points_2d[i].x()* points_3d[i].x(), -points_2d[i].x()* points_3d[i].y(),
+                        -points_2d[i].x()* points_3d[i].z(), -points_2d[i].x()});
+        P.set_row(i*2 + 1, {0.0, 0.0, 0.0, 0.0,
+                        points_3d[i].x(), points_3d[i].y(), points_3d[i].z(), 1.0,
+                        -points_2d[i].y()* points_3d[i].x(), -points_2d[i].y()* points_3d[i].y(),
+                        -points_2d[i].y()* points_3d[i].z(), -points_2d[i].y()});
+    }
+    std::cout << P << std::endl;
 
     // TODO: solve for M (the whole projection matrix, i.e., M = K * [R, t]) using SVD decomposition.
     //   Optional: you can check if your M is correct by applying M on the 3D points. If correct, the projected point
     //             should be very close to your input images points.
+    Matrix U(points_3d.size() * 2, points_3d.size() * 2, 0.0);   // initialized with 0s
+    Matrix S(points_3d.size() * 2, 12, 0.0);   // initialized with 0s
+    Matrix V(12, 12, 0.0);   // initialized with 0s
+
+    // Compute the SVD decomposition of A
+    svd_decompose(P, U, S, V);
+    std::cout << U << std::endl;
+    std::cout << S << std::endl;
+    std::cout << V << std::endl;
+    Vector m = V.get_column(V.cols() - 1);
+    Matrix M(3, 4, m.data());
+    std::cout << M << std::endl;
+
 
     // TODO: extract intrinsic parameters from M.
 
