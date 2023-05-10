@@ -240,6 +240,13 @@ bool Calibration::calibration(
     Matrix M(3, 4, m.data());
     std::cout << M << std::endl;
 
+    // Check if it works
+for (int i = 0; i < points_3d.size(); ++i){
+        Vector p = M * Vector({points_3d[i].x(), points_3d[i].y(), points_3d[i].z(), 1.0});
+        std::cout << p << std::endl;
+        std::cout << p[0]/p[2] << " " << p[1]/p[2] << std::endl;
+        std::cout << points_2d[i].x() << " " << points_2d[i].y() << std::endl;
+    }
 
     // TODO: extract intrinsic parameters from M.
 
