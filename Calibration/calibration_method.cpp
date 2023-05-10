@@ -111,7 +111,7 @@ bool Calibration::calibration(
     // Here I use the above array to initialize it. You can also use A(i, j) to initialize/modify/access its elements.
     const int m = 6, n = 5;
     Matrix A(m, n, array.data());    // 'array.data()' returns a pointer to the array.
-//    std::cout << "M: \n" << A << std::endl;
+    //std::cout << "M: \n" << A << std::endl;
 
     /// define a 3 by 4 matrix (and all elements initialized to 0.0)
     Matrix M(3, 4, 0.0);
@@ -210,7 +210,13 @@ bool Calibration::calibration(
         return false;
     }
     // TODO: construct the P matrix (so P * m = 0).
-    int num_points = points_3d.size();
+    Matrix P(points_3d.size(), 3, 0.0);
+    for (int i = 0; i < points_3d.size(); i++) {
+        P.set_row(i, points_3d[i]);
+    }
+
+    //std::cout<<"P Matrix"<<std::endl;
+    std::cout<<P<<std::endl;
 
     // TODO: solve for M (the whole projection matrix, i.e., M = K * [R, t]) using SVD decomposition.
     //   Optional: you can check if your M is correct by applying M on the 3D points. If correct, the projected point
