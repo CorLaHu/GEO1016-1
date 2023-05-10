@@ -240,15 +240,30 @@ bool Calibration::calibration(
     Matrix M(3, 4, m.data());
     std::cout << M << std::endl;
 
-    // Check if it works
-for (int i = 0; i < points_3d.size(); ++i){
-        Vector p = M * Vector({points_3d[i].x(), points_3d[i].y(), points_3d[i].z(), 1.0});
-        std::cout << p << std::endl;
-        std::cout << p[0]/p[2] << " " << p[1]/p[2] << std::endl;
-        std::cout << points_2d[i].x() << " " << points_2d[i].y() << std::endl;
-    }
-
     // TODO: extract intrinsic parameters from M.
+    Vector a1(std::vector<double> {M(0, 0), M(0, 1), M(0, 2)});
+    Vector a2(std::vector<double> {M(1, 0), M(1, 1), M(1, 2)});
+    Vector a3(std::vector<double> {M(2, 0), M(2, 1), M(2, 2)});
+    double b1 = M(0, 3);
+    double b2 = M(1, 3);
+    double b3 = M(2, 3);
+
+    // calculate parameters
+    double rho = 1.0 / length(a3);
+    cx = pow(rho, 2) * dot(a1, a3);
+    cy = pow(rho, 2) * dot(a2, a3);
+    double theta = acos(dot(cross(a1, a3), cross(a2, a3)) /
+            (length(cross(a1, a3)) * length(cross(a2, a3))));
+    std::cout << "theta:" << theta << std::endl;
+    double alpha = pow(rho, 2) * length(cross(a1, a3)) * sin(theta);
+    double beta = pow(rho, 2) * length(cross(a2, a3)) * sin(theta);
+
+    // calculate K matrix values
+    fx = alpha;
+    fy = beta / sin(theta);
+    skew = -alpha * (cos(theta) / sin(theta));
+    Matrix33 K(fx, skew, cx, 0, fy, cy, 0, 0, 1);
+    std::cout << "K: " << K << std::endl;
 
     // TODO: extract extrinsic parameters from M.
 
