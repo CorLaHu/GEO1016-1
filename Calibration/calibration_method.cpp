@@ -248,7 +248,7 @@ bool Calibration::calibration(
     double b2 = M(1, 3);
     double b3 = M(2, 3);
 
-    // calculate parameters
+    // calculate rho twice; check for positive tz and take that value as rho
     double rho = 1.0 / length(a3);
     cx = pow(rho, 2) * dot(a1, a3);
     cy = pow(rho, 2) * dot(a2, a3);
@@ -258,6 +258,13 @@ bool Calibration::calibration(
     double alpha = pow(rho, 2) * length(cross(a1, a3)) * sin(theta);
     double beta = pow(rho, 2) * length(cross(a2, a3)) * sin(theta);
 
+
+    double r1 = cross(a2, a3) / length(cross(a2, a3));
+    double r3 = rho * r3;
+    double r2 = cross(r3, r1);
+
+    //calculate extrinsic
+
     // calculate K matrix values
     fx = alpha;
     fy = beta / sin(theta);
@@ -265,7 +272,18 @@ bool Calibration::calibration(
     Matrix33 K(fx, skew, cx, 0, fy, cy, 0, 0, 1);
     std::cout << "K: " << K << std::endl;
 
-    // TODO: extract extrinsic parameters from M.
+    Matrix inverseK;
+    inverse(K, inverseK);
+    Vector b_vector(std::vector<double>{b1, b2, b3});
+    Vector3D t = rho * inverseK * b_vector;
+
+
+
+
+
+
+
+            // TODO: extract extrinsic parameters from M.
 
     std::cout << "\n\tTODO: After you implement this function, please return 'true' - this will trigger the viewer to\n"
                  "\t\tupdate the rendering using your recovered camera parameters. This can help you to visually check\n"
