@@ -288,6 +288,22 @@ bool Calibration::calibration(
 
     std::cout << R << std::endl;
 
+    // check if computed parameters are correct
+    Matrix34 test_m(r1[0], r1[1], r1[2], t.x(),
+                    r2[0], r2[1], r2[2], t.y(),
+                    r3[0], r3[1], r3[2], t.z());
+    Vector P_test(std::vector<double>{points_3d[0].x(), points_3d[0].y(), points_3d[0].z(), 1.0});
+    Vector3D p_test = K * (test_m * P_test);
+    double x_test = p_test.x() / p_test.z();
+    double y_test = p_test.y() / p_test.z();
+    std::cout << p_test << std::endl;
+    double x_diff = x_test - points_2d[0].x();
+    double y_diff = y_test - points_2d[0].y();
+    std::cout << "x_diff: " << x_diff << " y_diff: " << y_diff << std::endl;
+    if (x_diff < 1.0 and y_diff < 1.0){
+        return true;
+    }
+
     std::cout << "\n\tTODO: After you implement this function, please return 'true' - this will trigger the viewer to\n"
                  "\t\tupdate the rendering using your recovered camera parameters. This can help you to visually check\n"
                  "\t\tif your calibration is successful or not.\n\n" << std::flush;
