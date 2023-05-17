@@ -153,19 +153,28 @@ bool Calibration::calibration(
     R.set_row(1, r2);
     R.set_row(2, r3);
 
-    // check if computed parameters are correct
+    // Compute the accuracy of the calibration
+    std::cout << "Computing accuracy of calibration in pixel coordinates..." << std::endl;
     Matrix34 test_Rt(r1[0], r1[1], r1[2], t.x(),
                     r2[0], r2[1], r2[2], t.y(),
                     r3[0], r3[1], r3[2], t.z());
-    Vector P_test(std::vector<double>{points_3d[0].x(), points_3d[0].y(), points_3d[0].z(), 1.0});
-    Vector3D p_test = K * (test_Rt * P_test);
-    //go from homogeneous coords to image coords
-    double x_test = p_test.x() / p_test.z();
-    double y_test = p_test.y() / p_test.z();
-    double x_diff = x_test - points_2d[0].x();
-    double y_diff = y_test - points_2d[0].y();
-    // accept the calibration results if difference in values is within 1 pixel, else return false
-    if (x_diff < 1.0 and y_diff < 1.0) {
+
+    double total_error = 0.0;
+    for (int i = 0; i < points_3d.size(); ++i){
+        Vector P_test(std::vector<double>{points_3d[i].x(), points_3d[i].y(), points_3d[i].z(), 1.0});
+        Vector3D p_test = K * (test_Rt * P_test);
+        //go from homogeneous coords to image coords
+        double x_test = p_test.x() / p_test.z();
+        double y_test = p_test.y() / p_test.z();
+        double error_x = x_test - points_2d[i].x();
+        double error_y = y_test - points_2d[i].y();
+        total_error += sqrt(pow(error_x, 2) + pow(error_y, 2));
+    }
+    double avg_error = total_error / points_3d.size();
+    std::cout << "The average error is " << avg_error << " pixels." << std::endl;
+
+    if (avg_error < 3.0){
+        std::cout << "Calibration successful" << std::endl;
         return true;
     }
 
