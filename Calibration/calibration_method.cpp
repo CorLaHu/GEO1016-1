@@ -108,13 +108,11 @@ bool Calibration::calibration(
     Matrix M(3, 4, m.data());
     std::cout << M << std::endl;
 
-    // extract intrinsic parameters from M.
-    Vector a1(M.get_row(0));
-    Vector a2(M.get_row(1));
-    Vector a3(M.get_row(2));
-    double b1 = M(0, 3);
-    double b2 = M(1, 3);
-    double b3 = M(2, 3);
+    // extract a1 - a3 from M.
+    Vector a1(std::vector<double>{M(0, 0), M(0, 1), M(0, 2)});
+    Vector a2(std::vector<double>{M(1, 0), M(1, 1), M(1, 2)});
+    Vector a3(std::vector<double>{M(2, 0), M(2, 1), M(2, 2)});
+
 
     // calculate the value of rho; sign of rho is checked later since below parameters are the same regardless of sign
     double rho = 1.0 / length(a3);
@@ -135,7 +133,7 @@ bool Calibration::calibration(
     // extract extrinsic parameters from M.
     Matrix inverseK;
     inverse(K, inverseK);
-    Vector b_vector(std::vector<double>{b1, b2, b3});
+    Vector b_vector = M.get_column(M.cols() - 1);
     t = rho * inverseK * b_vector;
 
     // check if rho should change signs to negative
@@ -175,6 +173,10 @@ bool Calibration::calibration(
 
     if (avg_error < 3.0){
         std::cout << "Calibration successful" << std::endl;
+        return true;
+    }
+    if (avg_error >= 3.0){
+        std::cout << "Calibration successful, but error is high" << std::endl;
         return true;
     }
 
