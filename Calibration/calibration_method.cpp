@@ -109,9 +109,9 @@ bool Calibration::calibration(
     std::cout << M << std::endl;
 
     // extract intrinsic parameters from M.
-    Vector a1(std::vector<double>{M(0, 0), M(0, 1), M(0, 2)});
-    Vector a2(std::vector<double>{M(1, 0), M(1, 1), M(1, 2)});
-    Vector a3(std::vector<double>{M(2, 0), M(2, 1), M(2, 2)});
+    Vector a1(M.get_row(0));
+    Vector a2(M.get_row(1));
+    Vector a3(M.get_row(2));
     double b1 = M(0, 3);
     double b2 = M(1, 3);
     double b3 = M(2, 3);
