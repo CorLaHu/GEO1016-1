@@ -37,7 +37,7 @@ using namespace easy3d;
  */
 bool Calibration::calibration(
         const std::vector<Vector3D>& points_3d, /// input: An array of 3D points.
-        const std::vector<Vector2D>& points_2d, /// input: An array of 2D image points.
+        const std::vector<Vect or2D>& points_2d, /// input: An array of 2D image points.
         double& fx,    /// output: focal length (i.e., K[0][0], which is equal to 'alpha' in our slides).
         double& fy,    /// output: focal length (i.e., K[1][1], which is equal to 'beta/sin(theta)' in our slides).
         double& cx,    /// output: x component of the principal point (i.e., K[0][2], which is 'u0' in our slides).
@@ -225,9 +225,9 @@ bool Calibration::calibration(
     int num_pts_2d = points_2d.size();
     assert(num_pts >= 6 & num_pts_2d == num_pts);
 
+
     std::vector<double> vector_P;
     for(int i = 0; i < num_pts; i++){
-        Vector3D a = points_3d[i];
         Vector2D b = points_2d[i];
         std::vector<double> temp_vector_P = {a.x(), a.y(), a.z(), 1, 0, 0, 0, 0, -b.x() * a.x(), -b.x() * a.y(), -b.x() * a.z(), -b.x(),
                                              0, 0, 0, 0, a.x(), a.y(), a.z(), 1, -b.y() * a.x(), -b.y() * a.y(), -b.y() * a.z(), -b.y()};
@@ -280,6 +280,8 @@ bool Calibration::calibration(
     R.set_row(0, ((cross(a_2, a_3)) / (cross(a_2, a_3).length())));
     R.set_row(1, (cross((rho * a_3), ((cross(a_2, a_3)) / (cross(a_2, a_3).length())))));
     R.set_row(2, (rho * a_3));
+
+    // Lars: Consider putting this into the if statement above that changes the sign of rho; makes the code little bit faster
     t = rho * invK * b;
 
 
